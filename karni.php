@@ -86,12 +86,12 @@ try {
             $mail->isSMTP();
             $mail->Host = 'smtp.gmail.com';
             $mail->SMTPAuth = true;
-            $mail->Username = 'pharfind@gmail.com';
-            $mail->Password = 'stag hgcx gvxm irwd';  // Assurez-vous de ne jamais exposer vos mots de passe en production !
+            $mail->Username = '';
+            $mail->Password = '';  // Assurez-vous de ne jamais exposer vos mots de passe en production !
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
             $mail->Port = 587;
 
-            $mail->setFrom('pharfind@gmail.com', 'Hamrouni');
+            $mail->setFrom('', '');
             $mail->addAddress($recipient_email);
             $mail->isHTML(true);
             $mail->Subject = 'Détails de votre panier';
