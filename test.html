@@ -1,0 +1,1016 @@
+<script>
+    session_start();
+    if (!isset($_SESSION['id_res'])) {
+        header('Location: index.php');
+        exit();
+    }
+</script>
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panier Intelligent</title>
+    <script src="https://cdn.jsdelivr.net/npm/html5-qrcode/minified/html5-qrcode.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --secondary: #4f46e5;
+            --accent: #f43f5e;
+            --background: #f8fafc;
+            --text: #1e293b;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            padding: 1rem;
+            color: var(--text);
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        .header-container {
+            position: relative;
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+
+        .user-info {
+            background: white;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .main-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            width: 100%;
+        }
+
+        .scanner-container, .form-container {
+            flex: 1;
+            min-width: 300px;
+            background: white;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        #qr-reader {
+            width: 100%;
+            height: 250px;
+            border-radius: 1rem;
+            overflow: hidden;
+            background: #000;
+            margin: 1rem 0;
+        }
+
+        #panier {
+            flex: 1 1 400px;
+            background: white;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            overflow-x: auto;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--primary);
+            color: white;
+            font-size: 0.9rem;
+        }
+
+        button.secondary {
+            background: var(--accent);
+        }
+
+        button:hover {
+            filter: brightness(1.1);
+            transform: translateY(-1px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .quantity-control {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .quantity-btn {
+            width: 30px;
+            height: 30px;
+            border: none;
+            border-radius: 8px;
+            background-color: var(--primary);
+            color: white;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .quantity-btn:hover {
+            background-color: var(--secondary);
+            transform: scale(1.05);
+        }
+
+        .quantity-btn:active {
+            transform: scale(0.95);
+        }
+
+        .quantity-btn.decrease {
+            background-color: var(--accent);
+        }
+
+        .quantity-btn.decrease:hover {
+            background-color: #dc2626;
+        }
+
+        .quantity-input input {
+            width: 45px;
+            padding: 0.4rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .quantity-input input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        /* Animation pour les changements de quantité */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .quantity-change {
+            animation: pulse 0.3s ease-in-out;
+        }
+
+        #start-scan-btn {
+            background: var(--primary);
+            color: white;
+        }
+
+        #stop-btn {
+            background: var(--accent);
+            color: white;
+        }
+
+        .like-btn {
+            background: none;
+            color: #64748b;
+            padding: 0.5rem;
+        }
+
+        .like-btn.liked {
+            color: var(--accent);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            min-width: 600px;
+        }
+
+        th, td {
+            padding: 0.8rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background: var(--background);
+            font-weight: 600;
+        }
+
+        .product-image {
+            width: 50px;
+            height: 50px;
+            border-radius: 0.5rem;
+            object-fit: cover;
+        }
+
+        .remove-btn {
+            color: var(--accent);
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .remove-btn:hover {
+            color: #dc2626;
+        }
+
+        .total {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--secondary);
+            padding: 1rem;
+            background: var(--background);
+            border-radius: 0.75rem;
+            text-align: right;
+            margin-top: 1rem;
+        }
+
+        .total .button-group {
+            margin-top: 15px;
+            justify-content: flex-end;
+        }
+
+        /* Sidebar améliorée pour mobile */
+        .sidebar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            background: #ffffff;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 0 10px;
+            z-index: 1000;
+        }
+
+        .nav-icon {
+            padding: 8px;
+            border-radius: 50%;
+            transition: all 0.3s;
+            color: #6366f1;
+            text-decoration: none;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 0.7rem;
+        }
+
+        .nav-icon:hover {
+            background: #6366f110;
+            transform: scale(1.1);
+        }
+
+        .nav-icon.active {
+            color: white;
+            background: #6366f1;
+        }
+
+        .nav-icon i {
+            font-size: 1.2rem;
+            margin-bottom: 3px;
+        }
+
+        /* Modification du body pour l'espacement */
+        body {
+            padding-bottom: 70px; /* Espace pour la sidebar mobile */
+        }
+
+        .iframe-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Conteneur de la calculatrice */
+        .calculator-frame {
+            width: 90%;
+            max-width: 500px;
+            height: 80%;
+            max-height: 480px;
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            transform: scale(0.9);
+            opacity: 0;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .calculator-frame.active {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        /* Iframe stylé */
+        .styled-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Bouton de fermeture */
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            z-index: 2001;
+        }
+
+        /* Styles pour la fenêtre de confirmation */
+        .confirmation-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 3000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .confirmation-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            transform: scale(0.9);
+            opacity: 0;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .confirmation-content.active {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        .confirmation-icon {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .confirmation-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--text);
+        }
+
+        .confirmation-message {
+            color: #64748b;
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+
+        .confirmation-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .confirmation-buttons button {
+            min-width: 100px;
+        }
+
+        .btn-confirm {
+            background: var(--primary);
+        }
+
+        .btn-cancel {
+            background: #64748b;
+        }
+
+        .btn-confirm:hover {
+            background: var(--secondary);
+        }
+
+        .btn-cancel:hover {
+            background: #475569;
+        }
+
+        /* Styles pour les écrans plus larges */
+        @media (min-width: 768px) {
+            body {
+                flex-direction: row;
+                flex-wrap: wrap;
+                padding: 1rem;
+                padding-right: 70px; /* Espace pour la sidebar desktop */
+                padding-bottom: 1rem;
+            }
+
+            .sidebar {
+                position: fixed;
+                right: 0;
+                top: 0;
+                left: auto;
+                width: 60px;
+                height: 100vh;
+                flex-direction: column;
+                justify-content: flex-start;
+                padding-top: 20px;
+                box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+            }
+
+            .nav-icon {
+                margin: 15px 0;
+                font-size: 0.8rem;
+            }
+
+            .nav-icon i {
+                font-size: 1.5rem;
+                margin-bottom: 5px;
+            }
+
+            .header-container {
+                width: 100%;
+            }
+
+            .user-info {
+                width: auto;
+                position: absolute;
+                top: 0;
+                left: 0;
+                z-index: 1001;
+            }
+
+            .main-content {
+                margin-top: 80px;
+            }
+
+            .iframe-overlay {
+                width: 100%;
+            }
+
+            .calculator-frame {
+                width: 500px;
+                height: 480px;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .scanner-container, #panier {
+                width: 100%;
+                flex: none;
+            }
+            
+            table {
+                font-size: 0.85rem;
+            }
+            
+            th, td {
+                padding: 0.5rem;
+            }
+            
+            .product-image {
+                width: 40px;
+                height: 40px;
+            }
+            
+            .button-group {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .button-group button {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .user-info {
+                flex-direction: column;
+                gap: 0.5rem;
+                align-items: flex-start;
+            }
+
+            .confirmation-buttons {
+                flex-direction: column;
+            }
+
+            .confirmation-buttons button {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 0.5rem;
+                padding-bottom: 70px;
+            }
+            
+            .scanner-container, #panier {
+                padding: 1rem;
+            }
+            
+            h2 {
+                font-size: 1.2rem;
+            }
+            
+            table {
+                font-size: 0.8rem;
+                min-width: 500px;
+            }
+            
+            th, td {
+                padding: 0.4rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header-container">
+        <div class="user-info">
+            <div>
+                <strong>Connecté en tant que :</strong><br>
+                <span id="responsable-info">Chargement...</span>
+            </div>
+            <a href="logout.php" style="background: var(--accent); color: white; padding: 0.5rem 1rem; border-radius: 0.5rem; text-decoration: none;">
+                <i class="fas fa-sign-out-alt"></i> Déconnexion
+            </a>
+        </div>
+    </div>
+
+    <!-- Fenêtre de confirmation -->
+    <div class="confirmation-modal" id="confirmationModal">
+        <div class="confirmation-content" id="confirmationContent">
+            <div class="confirmation-icon">
+                <i class="fas fa-question-circle"></i>
+            </div>
+            <div class="confirmation-title" id="confirmationTitle">Confirmation</div>
+            <div class="confirmation-message" id="confirmationMessage">Êtes-vous sûr de vouloir effectuer cette action ?</div>
+            <div class="confirmation-buttons">
+                <button class="btn-confirm" id="confirmYes">
+                    <i class="fas fa-check"></i> Oui
+                </button>
+                <button class="btn-cancel" id="confirmNo">
+                    <i class="fas fa-times"></i> Annuler
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="iframe-overlay" id="calcOverlay"> 
+        <button class="close-btn" onclick="closeCalculator()">&times;</button>
+        <div class="calculator-frame" id="calcFrame">
+            <iframe src="calcul.html" class="styled-iframe" title="Calculatrice"></iframe>
+        </div>
+    </div>
+    
+    <!-- Modale pour le générateur de QR code -->
+    <div class="iframe-overlay" id="qrOverlay">
+        <button class="close-btn" onclick="closeqr()">&times;</button>
+        <div class="calculator-frame" id="qrFrame">
+            <iframe src="gen.php" class="styled-iframe" title="Générer QR Code"></iframe>
+        </div>
+    </div>
+    
+ <div class="sidebar">
+        <a href="calcul.html" class="nav-icon" title="Calculatrice" onclick="showCalculator(event)">
+            <i class="fas fa-calculator"></i>
+        </a>
+        <a href="prod.php" class="nav-icon " title="Panier">
+            <i class="fas fa-shopping-cart"></i>
+        </a>
+        
+        <a href="historique.php" class="nav-icon" title="Historique">
+            <i class="fas fa-history"></i>
+        </a>
+        
+        <a href="ajouter_produit.html" class="nav-icon" title="Ajouter produit">
+            <i class="fas fa-plus"></i>
+        </a>
+        <a href="test.html" class="nav-icon active" title="Home">
+            <i class="fas fa-home"></i>
+        </a>
+        
+        
+        <a href="karni.php" class="nav-icon" title="Utilisateurs"> 
+            <i class="fas fa-users"></i>
+        </a>
+        
+        <a href="note.php" class="nav-icon" title="Note">
+            <i class="fas fa-edit"></i>
+        </a>
+        <a href="factures.php" class="nav-icon" title="facteur" >
+            <i class="fas fa-file-invoice"></i>
+        </a>
+        <a href="a4ya.php" class="nav-icon" title="Stock">
+            <i class="fas fa-boxes"></i> 
+        </a>
+         <a href="sbasty.php" class="nav-icon" title="sbasa">
+            <i class="fas fa-users"></i> 
+        </a>
+        <a href="gen.php" class="nav-icon" title="Générer QR code" onclick="showqr(event)">
+            <i class="fas fa-qrcode"></i>
+        </a>
+    </div>
+    
+    <div class="main-content">
+        <div class="scanner-container">
+            <h2><i class="fas fa-qrcode"></i> Scanner QR Code</h2>
+            <div id="qr-reader">
+                <div class="scanner-overlay"></div>
+            </div>
+            <div id="result">
+                <p><strong>Code QR scanné :</strong></p>
+                <p id="scanned-result">Aucun code détecté</p>
+            </div>
+            <div class="button-group">
+                <button id="start-scan-btn"><i class="fas fa-play"></i> Démarrer</button>
+                <button id="stop-btn" class="secondary"><i class="fas fa-stop"></i> Arrêter</button>
+            </div>
+        </div>
+
+        <div id="panier">
+            <h2>Votre Panier</h2>
+            <table id="panier-table">
+                <thead>
+                    <tr>
+                        <th>Image</th>
+                        <th>Nom</th>
+                        <th>Prix</th>
+                        <th>Quantité</th>
+                        <th>Total</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="panier-items">
+                    <!-- Les articles du panier seront ajoutés ici -->
+                </tbody>
+            </table>
+            <div class="total">
+                Total : <span id="total-price">0</span>د.ت
+                <div class="button-group">
+                    <button onclick="showSaveConfirmation()" class="secondary">
+                        <i class="fas fa-save"></i> Sauvegarder
+                    </button>
+                    <button onclick="showClearConfirmation()" class="secondary">
+                        <i class="fas fa-trash"></i> Vider
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script> 
+        const html5QrCode = new Html5Qrcode("qr-reader");
+        let panier = [];
+        let total = 0;
+        let pendingAction = null;
+
+        // Fonctions pour la fenêtre de confirmation
+        function showConfirmationModal(title, message, confirmCallback) {
+            const modal = document.getElementById('confirmationModal');
+            const content = document.getElementById('confirmationContent');
+            const titleElement = document.getElementById('confirmationTitle');
+            const messageElement = document.getElementById('confirmationMessage');
+            
+            titleElement.textContent = title;
+            messageElement.textContent = message;
+            pendingAction = confirmCallback;
+            
+            modal.style.display = 'flex';
+            setTimeout(() => {
+                content.classList.add('active');
+            }, 10);
+        }
+
+        function hideConfirmationModal() {
+            const modal = document.getElementById('confirmationModal');
+            const content = document.getElementById('confirmationContent');
+            
+            content.classList.remove('active');
+            setTimeout(() => {
+                modal.style.display = 'none';
+                pendingAction = null;
+            }, 300);
+        }
+
+        function showSaveConfirmation() {
+            if (panier.length === 0) {
+                alert("Le panier est vide !");
+                return;
+            }
+            
+            showConfirmationModal(
+                "Sauvegarder le panier",
+                "Êtes-vous sûr de vouloir sauvegarder le panier actuel ? Cette action enregistrera tous les articles dans votre historique.",
+                saveCart
+            );
+        }
+
+        function showClearConfirmation() {
+            if (panier.length === 0) {
+                alert("Le panier est déjà vide !");
+                return;
+            }
+            
+            showConfirmationModal(
+                "Vider le panier",
+                "Êtes-vous sûr de vouloir vider complètement le panier ? Cette action supprimera tous les articles et ne pourra pas être annulée.",
+                clearCart
+            );
+        }
+
+        // Initialisation des événements de confirmation
+        document.getElementById('confirmYes').addEventListener('click', function() {
+            if (pendingAction) {
+                pendingAction();
+            }
+            hideConfirmationModal();
+        });
+
+        document.getElementById('confirmNo').addEventListener('click', hideConfirmationModal);
+
+        // Fermer la modale en cliquant à l'extérieur
+        document.getElementById('confirmationModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                hideConfirmationModal();
+            }
+        });
+
+        function onScanSuccess(decodedText, decodedResult) {
+            document.getElementById("scanned-result").textContent = decodedText;
+            // Appel AJAX pour récupérer les informations du produit basé sur le code QR
+            fetch(`get_product_info.php?id=${decodedText}`)
+                .then(response => response.json())
+                .then(product => {
+                    if (product.error) {
+                        alert('Produit non trouvé');
+                    } else {
+                        // Ajouter le produit au panier
+                        addToCart(product);
+                        restartScanning();  // Relance le scanner après l'ajout
+                    }
+                });
+            html5QrCode.stop();
+        }
+    
+        function onScanError(errorMessage) {
+            console.error(errorMessage);
+        }
+    
+        function startScanning() {
+            html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, onScanSuccess, onScanError)
+                .catch(err => console.error(err));
+            document.getElementById('start-scan-btn').style.display = 'none';
+            document.getElementById('stop-btn').style.display = 'inline-block';
+        }
+    
+        function stopScanning() {
+            html5QrCode.stop().catch(err => console.error("Erreur lors de l'arrêt du scanner"));
+            document.getElementById('start-scan-btn').style.display = 'inline-block';
+            document.getElementById('stop-btn').style.display = 'none';
+        }
+    
+        // Relancer le scanner après chaque ajout de produit
+        function restartScanning() {
+            setTimeout(() => {
+                startScanning();  // Redémarre le scanner après un délai de 1 seconde
+            }, 1000);
+        }
+    
+        document.getElementById('start-scan-btn').addEventListener('click', startScanning);
+        document.getElementById('stop-btn').addEventListener('click', stopScanning);
+    
+        function addToCart(product) {
+            let productInCart = panier.find(item => item.id === product.id);
+            if (productInCart) {
+                productInCart.quantity += 1;
+            } else {
+                panier.push({
+                    id: product.id,
+                    nom: product.nom,
+                    prix: product.prix,
+                    image: product.image,
+                    quantity: 1
+                });
+            }
+            updateCart();
+        }
+    
+        function updateCart() {
+            let panierItemsHTML = '';
+            total = 0;
+            panier.forEach(item => {
+                let itemTotal = item.prix * item.quantity;
+                total += itemTotal;
+                panierItemsHTML += `
+                    <tr data-id="${item.id}">
+                        <td><img src="${item.image}" class="product-image" alt="${item.nom}"></td>
+                        <td>${item.nom} <button class="like-btn" onclick="toggleLike(this)"><i class="far fa-heart"></i></button></td>
+                        <td>${item.prix} د.ت</td>
+                        <td>
+                            <div class="quantity-control">
+                                <button class="quantity-btn decrease" onclick="changeQuantity(${item.id}, -1)">−</button>
+                                <div class="quantity-input">
+                                    <input type="number" value="${item.quantity}" min="1" 
+                                        onchange="updateQuantity(${item.id}, this.value)"
+                                        class="quantity-display">
+                                </div>
+                                <button class="quantity-btn increase" onclick="changeQuantity(${item.id}, 1)">+</button>
+                            </div>
+                        </td>
+                        <td>${itemTotal.toFixed(2)} د.ت</td>
+                        <td><span class="remove-btn" onclick="removeItem(${item.id})"><i class="fas fa-trash"></i></span></td>
+                    </tr>
+                `;
+            });
+            document.getElementById('panier-items').innerHTML = panierItemsHTML;
+            document.getElementById('total-price').textContent = total.toFixed(2);
+        }
+    
+        function changeQuantity(id, delta) {
+            const item = panier.find(item => item.id === id);
+            if (item) {
+                const newQuantity = item.quantity + delta;
+                if (newQuantity >= 1) {
+                    item.quantity = newQuantity;
+                    updateCart();
+                    
+                    // Ajout d'une animation visuelle
+                    const input = document.querySelector(`tr[data-id="${id}"] .quantity-display`);
+                    if (input) {
+                        input.classList.add('quantity-change');
+                        setTimeout(() => {
+                            input.classList.remove('quantity-change');
+                        }, 300);
+                    }
+                }
+            }
+        }
+    
+        function toggleLike(btn) {
+            btn.classList.toggle('liked');
+            btn.querySelector('i').classList.toggle('far');
+            btn.querySelector('i').classList.toggle('fas');
+        }
+    
+        function removeItem(id) {
+            panier = panier.filter(item => item.id !== id);  // Supprimer l'élément du panier
+            updateCart();
+        }
+    
+        function updateQuantity(id, quantity) {
+            let item = panier.find(item => item.id === id);
+            if (item) {
+                item.quantity = parseInt(quantity);
+                updateCart();
+            }
+        }
+    
+        function showCalculator(e) {
+            e.preventDefault();
+            const overlay = document.getElementById('calcOverlay');
+            const frame = document.getElementById('calcFrame');
+            
+            overlay.style.display = 'flex';
+            setTimeout(() => frame.classList.add('active'), 10);
+        
+            // Fermeture au clic externe
+            overlay.addEventListener('click', (event) => {
+                if (event.target === overlay) closeCalculator();
+            });
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Récupérer les informations de session (vous pouvez aussi les passer via PHP)
+            fetch('get_session_info.php')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.responsable_nom) {
+                        document.getElementById('responsable-info').textContent = 
+                            data.responsable_nom + ' - ' + data.nom_ent;
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                });
+        });
+        
+        function closeCalculator() {
+            const overlay = document.getElementById('calcOverlay');
+            const frame = document.getElementById('calcFrame');
+            
+            frame.classList.remove('active');
+            setTimeout(() => overlay.style.display = 'none', 300);
+        }
+        
+        function showqr(e) {
+            e.preventDefault();
+            const overlay = document.getElementById('qrOverlay');
+            const frame = document.getElementById('qrFrame');
+            
+            overlay.style.display = 'flex';
+            setTimeout(() => frame.classList.add('active'), 10);
+        
+            // Fermeture au clic externe
+            overlay.addEventListener('click', (event) => {
+                if (event.target === overlay) closeqr();
+            });
+        }
+        
+        function closeqr() {
+            const overlay = document.getElementById('qrOverlay');
+            const frame = document.getElementById('qrFrame');
+            
+            frame.classList.remove('active');
+            setTimeout(() => overlay.style.display = 'none', 300);
+        }
+        
+        function clearCart() {
+            panier = [];
+            updateCart();
+            
+        }
+        
+        async function saveCart() {
+            try {
+                console.log("🔄 Tentative de sauvegarde...");
+                
+                // Debug 1: Vérifier le contenu du panier
+                console.log("📦 Contenu du panier:", JSON.stringify(panier, null, 2));
+                
+                const response = await fetch('save_cart.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(panier)
+                });
+                
+                // Debug 2: Vérifier la réponse HTTP brute
+                console.log("⚡ Réponse HTTP:", response);
+                
+                const result = await response.json();
+                console.log("📨 Réponse JSON:", result);
+        
+                if (!response.ok) throw new Error(result.error || 'Erreur inconnue');
+               
+                
+                
+            } catch (error) {
+                console.error("🔥 Erreur:", error);
+                alert("❌ Erreur lors de la sauvegarde: " + error.message);
+            }
+        }
+    </script>
+    
+</body>
+
+</html>

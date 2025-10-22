@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculatrice Moderne</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --secondary: #4f46e5;
+            --accent: #f43f5e;
+            --background: rgba(255, 255, 255, 0.9);
+            --text: #1e293b;
+            --success: #10b981;
+            --glass: rgba(255, 255, 255, 0.1);
+            --shadow-light: rgba(0, 0, 0, 0.1);
+            --shadow-dark: rgba(0, 0, 0, 0.2);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: var(--text);
+            backdrop-filter: blur(10px);
+        }
+
+        /* Sidebar Modernisée */
+     
+        .nav-icon {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 18px 30px;
+            margin: 8px 0;
+            color: var(--text);
+            text-decoration: none;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .nav-icon i {
+            font-size: 1.8rem;
+            min-width: 40px;
+            transition: transform 0.3s;
+        }
+
+        .nav-icon span {
+            margin-left: 20px;
+            opacity: 0;
+            font-size: 1.1rem;
+            white-space: nowrap;
+            transition: opacity 0.3s;
+        }
+
+        .sidebar:hover .nav-icon span {
+            opacity: 1;
+        }
+
+        .nav-icon:hover {
+            background: rgba(99, 102, 241, 0.1);
+            transform: translateX(-10px);
+        }
+
+        .nav-icon.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Calculatrice Modernisée */
+        .calculator {
+            background: var(--background);
+            border-radius: 20px;
+            padding: 2rem;
+            width: 320px;
+            box-shadow: 0 8px 32px var(--shadow-light);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass);
+            transform-style: preserve-3d;
+        }
+
+        .display {
+            background: rgba(241, 245, 249, 0.6);
+            border: 2px solid var(--glass);
+            padding: 1.5rem;
+            font-size: 2.2rem;
+            color: var(--primary);
+            border-radius: 15px;
+            margin-bottom: 1.5rem;
+            text-align: right;
+            min-height: 100px;
+            word-wrap: break-word;
+            transition: all 0.3s;
+        }
+
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .button {
+            aspect-ratio: 1;
+            border: none;
+            background: var(--glass);
+            color: var(--text);
+            font-size: 1.5rem;
+            cursor: pointer;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .button:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px var(--shadow-dark);
+        }
+
+        .button:active {
+            transform: translateY(0);
+        }
+
+        .button-equal {
+            grid-column: span 2;
+            aspect-ratio: unset;
+            background: var(--success);
+            color: white;
+        }
+
+        .button-clear {
+            background: var(--accent);
+            color: white;
+        }
+
+        .button-operator {
+            background: rgba(99, 102, 241, 0.2);
+            color: var(--primary);
+        }
+
+        @media (max-width: 480px) {
+            .calculator {
+                width: 90vw;
+                padding: 1.5rem;
+            }
+            
+            .display {
+                font-size: 1.8rem;
+                padding: 1rem;
+                min-height: 80px;
+            }
+        }
+    </style>
+</head>
+<body>
+  
+    <div class="calculator">
+        <div class="display" id="display">0</div>
+        <div class="button-grid">
+            <button class="button button-clear" id="clear">C</button>
+            <button class="button button-operator" onclick="appendToDisplay('%')">%</button>
+            <button class="button button-operator" onclick="appendToDisplay('/')">/</button>
+            <button class="button button-operator" onclick="appendToDisplay('*')">×</button>
+            <button class="button" onclick="appendToDisplay('7')">7</button>
+            <button class="button" onclick="appendToDisplay('8')">8</button>
+            <button class="button" onclick="appendToDisplay('9')">9</button>
+            <button class="button button-operator" onclick="appendToDisplay('-')">-</button>
+            <button class="button" onclick="appendToDisplay('4')">4</button>
+            <button class="button" onclick="appendToDisplay('5')">5</button>
+            <button class="button" onclick="appendToDisplay('6')">6</button>
+            <button class="button button-operator" onclick="appendToDisplay('+')">+</button>
+            <button class="button" onclick="appendToDisplay('1')">1</button>
+            <button class="button" onclick="appendToDisplay('2')">2</button>
+            <button class="button" onclick="appendToDisplay('3')">3</button>
+            <button class="button" onclick="appendToDisplay('.')">.</button>
+            <button class="button" onclick="appendToDisplay('0')">0</button>
+            <button class="button button-equal" onclick="calculate()">=</button>
+        </div>
+    </div>
+
+    <script>
+        const display = document.getElementById('display');
+        let currentExpression = '0';
+
+        function updateDisplay(value) {
+            display.textContent = value.replace(/\*/g, '×').replace(/\//g, '÷');
+        }
+
+        function appendToDisplay(value) {
+            if (currentExpression === '0' && !'%/*+-.'.includes(value)) {
+                currentExpression = value;
+            } else {
+                currentExpression += value;
+            }
+            updateDisplay(currentExpression);
+        }
+
+        function calculate() {
+            try {
+                const result = eval(currentExpression.replace(/×/g, '*').replace(/÷/g, '/'));
+                currentExpression = result.toString();
+                updateDisplay(currentExpression);
+            } catch (e) {
+                currentExpression = '0';
+                updateDisplay('Erreur');
+                setTimeout(() => updateDisplay('0'), 1000);
+            }
+        }
+
+        document.getElementById('clear').addEventListener('click', () => {
+            currentExpression = '0';
+            updateDisplay(currentExpression);
+        });
+
+        // Gestion du clavier
+        document.addEventListener('keydown', (e) => {
+            const key = e.key;
+            if (key >= '0' && key <= '9' || '+-*/.%'.includes(key)) {
+                appendToDisplay(key);
+            } else if (key === 'Enter') {
+                calculate();
+            } else if (key === 'Escape') {
+                currentExpression = '0';
+                updateDisplay(currentExpression);
+            }
+        });
+    </script>
+</body>
+</html>

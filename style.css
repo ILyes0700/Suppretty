@@ -1,0 +1,152 @@
+/* Styles de base */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f9;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.container {
+    display: flex;
+    justify-content: space-between;
+    width: 80%;
+    max-width: 1200px;
+    gap: 2rem;
+}
+
+/* Panier */
+.cart {
+    flex: 0 0 60%;
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+th, td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
+.cart-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#clear-cart {
+    background-color: #f44336;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#clear-cart:hover {
+    background-color: #e53935;
+}
+
+/* Scanner */
+.scanner {
+    flex: 0 0 35%;
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+#reader {
+    width: 100%;
+    height: 400px;
+    margin-bottom: 20px;
+}
+
+.btn-scan {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.btn-scan:hover {
+    background-color: #45a049;
+}
+
+/* Icone de suppression */
+.delete-icon {
+    color: #f44336;
+    cursor: pointer;
+    font-size: 20px;
+}
+
+.delete-icon:hover {
+    color: #e53935;
+}
+
+/* Styles des inputs de quantité */
+input[type="number"] {
+    width: 60px;
+    padding: 5px;
+    text-align: center;
+    margin: 0 10px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+}
+
+input[type="number"]:focus {
+    outline: none;
+    border-color: #4CAF50;
+}
+
+/* Pour l'image du produit dans le panier */
+td img {
+    width: 50px;
+    height: auto;
+    border-radius: 5px;
+}
+
+/* Ajout des styles de tableau */
+table th, table td {
+    text-align: center;
+}
+
+/* Design du bouton et de l'input */
+.btn-clear {
+    font-size: 16px;
+    font-weight: bold;
+    padding: 12px 25px;
+    background-color: #FF4081;
+    border: none;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.btn-clear:hover {
+    background-color: #FF80AB;
+}

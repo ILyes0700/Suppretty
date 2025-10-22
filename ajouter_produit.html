@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajouter un Produit</title>
+    <script src="https://cdn.jsdelivr.net/npm/html5-qrcode/minified/html5-qrcode.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --secondary: #4f46e5;
+            --accent: #f43f5e;
+            --background: #f8fafc;
+            --text: #1e293b;
+            --success: #10b981;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            min-height: 100vh;
+            color: var(--text);
+            padding: 1rem;
+            padding-bottom: 80px; /* Space for mobile sidebar */
+        }
+
+        /* Sidebar mobile en bas */
+        .sidebar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 70px;
+            background: white;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 0 10px;
+            z-index: 1000;
+        }
+
+        .nav-icon {
+            padding: 8px;
+            border-radius: 50%;
+            transition: all 0.3s;
+            color: #6366f1;
+            text-decoration: none;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 0.7rem;
+        }
+
+        .nav-icon:hover {
+            background: #6366f110;
+            transform: scale(1.1);
+        }
+
+        .nav-icon.active {
+            color: white;
+            background: #6366f1;
+        }
+
+        .nav-icon i {
+            font-size: 1.2rem;
+            margin-bottom: 3px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .scanner-container, .form-container {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+        }
+
+        h2 {
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.3rem;
+        }
+
+        #qr-reader {
+            width: 100%;
+            height: 250px;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            background: #000;
+            margin: 1rem 0;
+            position: relative;
+        }
+
+        .scanner-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 70%;
+            height: 70%;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 0.75rem;
+            pointer-events: none;
+            animation: scan 2.5s infinite linear;
+        }
+
+        @keyframes scan {
+            0% { top: 10%; opacity: 1; }
+            50% { top: 90%; opacity: 0.8; }
+            100% { top: 10%; opacity: 1; }
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--primary);
+            color: white;
+            font-size: 0.9rem;
+            min-width: 140px;
+            justify-content: center;
+        }
+
+        button.secondary {
+            background: var(--accent);
+        }
+
+        button:hover {
+            filter: brightness(1.1);
+            transform: translateY(-1px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .form-group {
+            margin: 1.2rem 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text);
+            font-size: 0.95rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        input[type="file"] {
+            padding: 0.5rem;
+        }
+
+        #result {
+            padding: 1rem;
+            background: var(--background);
+            border-radius: 0.75rem;
+            text-align: center;
+            margin: 1rem 0;
+        }
+
+        #scanned-result {
+            color: var(--success);
+            font-weight: 600;
+            margin-top: 0.5rem;
+            word-break: break-all;
+        }
+
+        /* Styles pour les écrans plus larges */
+        @media (min-width: 768px) {
+            body {
+                padding: 2rem;
+                padding-right: 80px; /* Space for desktop sidebar */
+                padding-bottom: 2rem;
+            }
+
+            .sidebar {
+                position: fixed;
+                right: 0;
+                top: 0;
+                left: auto;
+                width: 70px;
+                height: 100vh;
+                flex-direction: column;
+                justify-content: flex-start;
+                padding-top: 2rem;
+                box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+                bottom: auto;
+            }
+
+            .nav-icon {
+                margin: 15px 0;
+                font-size: 0.8rem;
+            }
+
+            .nav-icon i {
+                font-size: 1.4rem;
+                margin-bottom: 5px;
+            }
+
+            .container {
+                flex-direction: row;
+                gap: 2rem;
+            }
+
+            .scanner-container, .form-container {
+                flex: 1;
+                padding: 2rem;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+            }
+
+            #qr-reader {
+                height: 300px;
+            }
+
+            .button-group {
+                flex-wrap: nowrap;
+            }
+
+            button {
+                min-width: 160px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .container {
+                gap: 3rem;
+            }
+            
+            .scanner-container, .form-container {
+                padding: 2.5rem;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .button-group {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .button-group button {
+                width: 100%;
+            }
+            
+            h2 {
+                font-size: 1.2rem;
+            }
+            
+            .scanner-container, .form-container {
+                padding: 1.2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 0.8rem;
+                padding-bottom: 70px;
+            }
+            
+            .scanner-container, .form-container {
+                padding: 1rem;
+            }
+            
+            h2 {
+                font-size: 1.1rem;
+                margin-bottom: 1rem;
+            }
+            
+            #qr-reader {
+                height: 200px;
+            }
+            
+            .form-group {
+                margin: 1rem 0;
+            }
+            
+            input {
+                padding: 0.6rem;
+                font-size: 0.9rem;
+            }
+            
+            button {
+                padding: 0.6rem 1.2rem;
+                font-size: 0.85rem;
+            }
+        }
+
+        /* Animation de chargement */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #ffffff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Message de statut */
+        .status-message {
+            padding: 1rem;
+            border-radius: 0.75rem;
+            margin: 1rem 0;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .status-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+
+        .status-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Barre de navigation responsive -->
+<div class="sidebar">
+        <a href="calcul.html" class="nav-icon" title="Calculatrice" onclick="showCalculator(event)">
+            <i class="fas fa-calculator"></i>
+        </a>
+        <a href="prod.php" class="nav-icon" title="Panier">
+            <i class="fas fa-shopping-cart"></i>
+        </a>
+        
+        <a href="historique.php" class="nav-icon" title="Historique">
+            <i class="fas fa-history"></i>
+        </a>
+        
+        <a href="ajouter_produit.html" class="nav-icon active" title="Ajouter produit">
+            <i class="fas fa-plus"></i>
+        </a>
+        <a href="test.html" class="nav-icon" title="Home">
+            <i class="fas fa-home"></i>
+        </a>
+        
+        
+        <a href="karni.php" class="nav-icon" title="Utilisateurs"> 
+            <i class="fas fa-users"></i>
+        </a>
+        
+        <a href="note.php" class="nav-icon" title="Note">
+            <i class="fas fa-edit"></i>
+        </a>
+        <a href="factures.php" class="nav-icon" title="facteur" >
+            <i class="fas fa-file-invoice"></i>
+        </a>
+        <a href="a4ya.php" class="nav-icon" title="Stock">
+            <i class="fas fa-boxes"></i> 
+        </a>
+         <a href="sbasty.php" class="nav-icon" title="sbasa">
+            <i class="fas fa-users"></i> 
+        </a>
+        <a href="gen.php" class="nav-icon" title="Générer QR code" onclick="showqr(event)">
+            <i class="fas fa-qrcode"></i>
+        </a>
+    </div>
+
+<div class="container">
+    <!-- Scanner QR Code -->
+    <div class="scanner-container">
+        <h2><i class="fas fa-qrcode"></i> Scanner QR Code</h2>
+        <div id="qr-reader">
+            <div class="scanner-overlay"></div>
+        </div>
+        <div id="result">
+            <p><strong>Code QR scanné :</strong></p>
+            <p id="scanned-result">Aucun code détecté</p>
+        </div>
+        <div class="button-group">
+            <button id="start-scan-btn"><i class="fas fa-play"></i> Démarrer</button>
+            <button id="stop-btn" class="secondary"><i class="fas fa-stop"></i> Arrêter</button>
+        </div>
+    </div>
+
+    <!-- Formulaire d'ajout de produit -->
+    <div class="form-container">
+        <h2><i class="fas fa-cube"></i> Ajouter un produit</h2>
+        <form id="product-form" method="post" action="ajouter_produit.php" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="product-name">Nom du produit</label>
+                <input type="text" id="product-name" name="nom" required placeholder="Entrez le nom du produit">
+            </div>
+            <div class="form-group">
+                <label for="product-image">Image du produit</label>
+                <input type="file" id="product-image" name="image" accept="image/*" required>
+            </div>
+            <div class="form-group">
+                <label for="product-price">Prix (TND)</label>
+                <input type="number" id="product-price" name="prix" step="0.01" required placeholder="0.00">
+            </div>
+            <div class="form-group">
+                <label for="product-qr">Code QR</label>
+                <input type="text" id="product-qr" name="codeqr" readonly placeholder="Scannez un QR code pour le remplir">
+            </div>
+            <button type="submit" class="secondary">
+                <i class="fas fa-plus-circle"></i> Ajouter le produit
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    let html5Qrcode;
+    let isScanning = false;
+
+    async function onScanSuccess(decodedText) {
+        document.getElementById('scanned-result').textContent = decodedText;
+        document.getElementById('product-qr').value = decodedText;
+        stopScanning(); // Arrêter immédiatement après détection
+        
+        // Afficher un message de succès temporaire
+        showStatusMessage('QR Code scanné avec succès!', 'success');
+    }
+
+    function showStatusMessage(message, type) {
+        // Supprimer les messages existants
+        const existingMessages = document.querySelectorAll('.status-message');
+        existingMessages.forEach(msg => msg.remove());
+        
+        const statusDiv = document.createElement('div');
+        statusDiv.className = `status-message status-${type}`;
+        statusDiv.textContent = message;
+        
+        // Insérer après le résultat du scan
+        const resultDiv = document.getElementById('result');
+        resultDiv.parentNode.insertBefore(statusDiv, resultDiv.nextSibling);
+        
+        // Supprimer après 3 secondes
+        setTimeout(() => {
+            statusDiv.remove();
+        }, 3000);
+    }
+
+    async function startScanning() {
+        if (!html5Qrcode) {
+            html5Qrcode = new Html5Qrcode("qr-reader", { 
+                useBarCodeDetectorIfSupported: true 
+            });
+        }
+
+        try {
+            await html5Qrcode.start(
+                { facingMode: "environment" },
+                {
+                    fps: 60,
+                    qrbox: { width: 250, height: 250 },
+                    disableFlip: false
+                },
+                onScanSuccess
+            );
+
+            isScanning = true;
+            updateScannerUI();
+        } catch (err) {
+            console.error("Erreur du scanner :", err);
+            showStatusMessage('Erreur lors du démarrage du scanner', 'error');
+        }
+    }
+
+    function stopScanning() {
+        if (html5Qrcode && isScanning) {
+            html5Qrcode.stop().then(() => {
+                isScanning = false;
+                updateScannerUI();
+            }).catch(console.error);
+        }
+    }
+
+    function updateScannerUI() {
+        const startBtn = document.getElementById('start-scan-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        
+        if (isScanning) {
+            startBtn.style.display = 'none';
+            stopBtn.style.display = 'flex';
+        } else {
+            startBtn.style.display = 'flex';
+            stopBtn.style.display = 'none';
+        }
+    }
+
+    // Gestion du formulaire
+    document.getElementById('product-form').addEventListener('submit', function(e) {
+        const qrCode = document.getElementById('product-qr').value;
+        if (!qrCode) {
+            e.preventDefault();
+            showStatusMessage('Veuillez scanner un QR code avant de soumettre', 'error');
+            return;
+        }
+        
+        // Afficher un indicateur de chargement
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<div class="loading"></div> Ajout en cours...';
+        submitBtn.disabled = true;
+        
+        // Réactiver le bouton après 3 secondes (au cas où la soumission échoue)
+        setTimeout(() => {
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        }, 3000);
+    });
+
+    document.addEventListener("DOMContentLoaded", function () {
+        document.getElementById('start-scan-btn').addEventListener('click', startScanning);
+        document.getElementById('stop-btn').addEventListener('click', stopScanning);
+        
+        // Initialiser l'interface
+        updateScannerUI();
+    });
+
+    // Gestion du redimensionnement de la fenêtre
+    window.addEventListener('resize', function() {
+        if (isScanning) {
+            stopScanning();
+            setTimeout(startScanning, 100);
+        }
+    });
+</script>
+
+</body>
+</html>
